@@ -122,7 +122,6 @@ new.index.name = 'Trial'
 
 grouped = new.groupby([new.index,'Time'],as_index=False).sum()
 grouped = grouped.sort(['Time','Trial'])
-grouped = sorted(grouped['Time'],key=float)
 grouped = grouped.set_index('Trial')
 
 new.to_csv('test.csv')

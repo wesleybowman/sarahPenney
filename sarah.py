@@ -121,11 +121,20 @@ new.columns = ['Time','% in 1','% in 2','% in 3','% in 4']
 new.index.name = 'Trial'
 
 grouped = new.groupby([new.index,'Time'],as_index=False).sum()
-grouped = grouped.sort(['Time','Trial'])
+
+#Sorting
+grouped[['start', 'end']] = grouped['Time'].apply(lambda val: pd.Series(map(float, val.split('-'))))
+grouped.sort(['Trial','start', 'end'], inplace=True)
 grouped = grouped.set_index('Trial')
 
+#Here we have a start and end column, which allows us to sort
+#Can keep that or get rid of it
+newData = grouped.drop(['start','end'],1)
+
+#Write all of the data to files
 new.to_csv('test.csv')
 grouped.to_csv('test2.csv')
+newData.to_csv('test3.csv')
 
 averages = new.groupby(new.index).mean()
 averages.to_csv('average.csv')

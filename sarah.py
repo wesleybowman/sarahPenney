@@ -8,6 +8,7 @@ from PySide.QtGui import *
 import sys
 import os
 
+'''The sorted function arranges things by areas of interest.'''
 def sorted(trial,interval,time,aoi,i,j):
     if aoi=='':
         for k,v in enumerate(interval):
@@ -88,7 +89,10 @@ def sorted(trial,interval,time,aoi,i,j):
     return time
 
 
-
+'''fixData functions takes in the files, one at a time, and fixes them to how
+they are wanted for the output. It also saves the output file with the
+specified name, and returns the averaged file so it can be correctly appended
+and outputted. '''
 def fixData(file, saveAs):
     data = pd.read_csv('example_data.csv',sep='\t',index_col=0)
 
@@ -147,29 +151,37 @@ def fixData(file, saveAs):
 
     return averages
 
+'''the main function is just the GUI for inputting files, and regular
+expressions for naming the files. It also handles concatinating all of the
+averaged files together, so that only one averaged file is outputted.'''
+def main():
+    app = QApplication(sys.argv)
+    caption = 'Open Files'
+    directory = './'
+    #Do we need to delete old files?
+    files = QFileDialog.getOpenFileNames(None, caption, directory)[0]
 
-app = QApplication(sys.argv)
-caption = 'Open Files'
-directory = './'
-#Do we need to delete old files?
-files = QFileDialog.getOpenFileNames(None, caption, directory)[0]
+    averaged = pd.DataFrame()
 
-averaged = pd.DataFrame()
+    for file in files:
+        saveAs, ext=os.path.splitext(file)
+        match = re.search('\d{1,2}',saveAs)
+        saveAs = match.group(0)
+        saveAs = 'participant#{0}.csv'.format(saveAs)
+        averageName = 'participantsAveraged.csv'
 
-for file in files:
-    saveAs, ext=os.path.splitext(file)
-    saveAs = '{0}fixed.csv'.format(saveAs)
-    averageName = 'averaged.csv'
+        averages = fixData(file,saveAs)
 
-    averages = fixData(file,saveAs)
+        saveAs = saveAs.split('/')
+        nameSpacer = pd.DataFrame({'Name':[saveAs[-1]]})
 
-    saveAs = saveAs.split('/')
-    nameSpacer = pd.DataFrame({'Name':[saveAs[-1]]})
+        averaged = pd.concat([averaged,nameSpacer])
+        averaged = pd.concat([averaged,averages])
 
-    averaged = pd.concat([averaged,nameSpacer])
-    averaged = pd.concat([averaged,averages])
+        averaged.to_csv(averageName)
 
-    averaged.to_csv(averageName)
+if __name__ == '__main__':
+    main()
 
 
 

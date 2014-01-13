@@ -94,7 +94,7 @@ they are wanted for the output. It also saves the output file with the
 specified name, and returns the averaged file so it can be correctly appended
 and outputted. '''
 def fixData(file, saveAs):
-    data = pd.read_csv('example_data.csv',sep='\t',index_col=0)
+    data = pd.read_csv(file,sep='\t',index_col=0)
 
     trials = data.index.unique()
     new = pd.DataFrame()

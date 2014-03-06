@@ -9,7 +9,7 @@ import sys
 import os
 
 '''The sorted function arranges things by areas of interest.'''
-def sorted(trial,interval,time,aoi,i,j):
+def sortedData(trial,interval,time,aoi,i,j):
     if aoi=='':
         for k,v in enumerate(interval):
                     try:
@@ -89,11 +89,14 @@ def sorted(trial,interval,time,aoi,i,j):
     return time
 
 
+
+
 '''fixData functions takes in the files, one at a time, and fixes them to how
 they are wanted for the output. It also saves the output file with the
 specified name, and returns the averaged file so it can be correctly appended
 and outputted. '''
-def fixData(file, saveAs):
+def fixData(file, saveAs, includeStart=False, includeStop=False):
+
     data = pd.read_csv(file,sep='\t',index_col=0)
 
     trials = data.index.unique()
@@ -104,6 +107,12 @@ def fixData(file, saveAs):
         if trial!=0:
             start = data.loc[trial]['CURRENT_FIX_START']
             end = data.loc[trial]['CURRENT_FIX_END']
+
+            startValues = data.loc[trial]['verb_onset'].values[-1]
+            startValues = math.floor(startValues/100)*100
+
+            stopValues = data['Sentence_duration_ms'].dropna()
+            stopValues = math.floor(stopValues.values[trial-1]/100)*100
 
             areas = data.loc[trial]['CURRENT_FIX_INTEREST_AREAS']
             areas = areas.values
@@ -119,12 +128,23 @@ def fixData(file, saveAs):
                 end = math.ceil(j/100)*100
                 interval = np.arange(start, end+1, 100)
 
-                time = []
-                time = sorted(trial,interval,time,aoi[count],i,j)
+                if includeStart:
+                    ind = np.where(interval>=startValues)[0]
+                    interval = interval[ind]
 
-                time = pd.DataFrame(time)
-                time = time.set_index(0)
-                new = pd.concat([new,time])
+                if includeStop:
+                    ind = np.where(interval<=stopValues)[0]
+                    interval = interval[ind]
+
+                time = []
+                time = sortedData(trial,interval,time,aoi[count],i,j)
+
+                try:
+                    time = pd.DataFrame(time)
+                    time = time.set_index(0)
+                    new = pd.concat([new,time])
+                except KeyError:
+                    pass
 
                 count += 1
 
@@ -163,6 +183,10 @@ def main():
 
     averaged = pd.DataFrame()
 
+    ifStart = raw_input('\nDo you want to include Verb Onset? ')
+
+    ifStop = raw_input('\nDo you want to include Sentence Duration? ')
+
     for file in files:
         saveAs, ext=os.path.splitext(file)
         match = re.search('\d{1,2}',saveAs)
@@ -170,7 +194,7 @@ def main():
         saveAs = 'participant#{0}.csv'.format(saveAs)
         averageName = 'participantsAveraged.csv'
 
-        averages = fixData(file,saveAs)
+        averages = fixData(file, saveAs, ifStart, ifStop)
 
         saveAs = saveAs.split('/')
         nameSpacer = pd.DataFrame({'Name':[saveAs[-1]]})

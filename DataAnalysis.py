@@ -97,7 +97,12 @@ specified name, and returns the averaged file so it can be correctly appended
 and outputted. '''
 def fixData(file, saveAs, includeStart=False, includeStop=False):
 
-    data = pd.read_csv(file,sep='\t',index_col=0)
+    try:
+        data = pd.read_csv(file,sep='\t')
+        data = data.set_index('trial_count')
+    except pd.parser.CParserError:
+        data = pd.read_excel('data1.xlsx',0)
+        data = data.set_index('trial_count')
 
     trials = data.index.unique()
     new = pd.DataFrame()

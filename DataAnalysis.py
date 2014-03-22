@@ -90,7 +90,6 @@ def sortedData(trial,interval,time,aoi,i,j):
 
 
 
-
 '''fixData functions takes in the files, one at a time, and fixes them to how
 they are wanted for the output. It also saves the output file with the
 specified name, and returns the averaged file so it can be correctly appended
@@ -99,14 +98,13 @@ def fixData(file, saveAs, includeStart=False, includeStop=False):
 
     try:
         data = pd.read_csv(file,sep='\t')
-        data = data.set_index('trial_count')
     except pd.parser.CParserError:
-        data = pd.read_excel('data1.xlsx',0)
-        data = data.set_index('trial_count')
+        data = pd.read_excel(file,0)
+
+    data = data.set_index('trial_count')
 
     trials = data.index.unique()
     new = pd.DataFrame()
-
 
     for trial in trials:
         if trial!=0:
@@ -131,7 +129,29 @@ def fixData(file, saveAs, includeStart=False, includeStop=False):
             for i, j in zip(start.values, end.values):
                 start = math.floor(i/100)*100
                 end = math.ceil(j/100)*100
+
                 interval = np.arange(start, end+1, 100)
+
+                try:
+                    if lastInterval not in interval:
+                        newInterval = np.arange(lastInterval,interval[0]+1,100)
+                        newInterval = list(newInterval)
+
+                        if newInterval:
+                            time = []
+                            time = sortedData(trial,newInterval,time,'',i,j)
+
+                            try:
+                                time = pd.DataFrame(time)
+                                time = time.set_index(0)
+                                new = pd.concat([new,time])
+                            except KeyError:
+                                pass
+
+                except:
+                    pass
+
+                lastInterval = interval[-1]
 
                 if includeStart:
                     ind = np.where(interval>=startValues)[0]
@@ -211,7 +231,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-
-

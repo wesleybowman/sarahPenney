@@ -135,6 +135,15 @@ def fixData(file, saveAs, includeStart=False, includeStop=False):
                 try:
                     if lastInterval not in interval:
                         newInterval = np.arange(lastInterval,interval[0]+1,100)
+
+                        if includeStart:
+                            ind = np.where(newInterval>=startValues)[0]
+                            newInterval = newInterval[ind]
+
+                        if includeStop:
+                            ind = np.where(newInterval<=stopValues)[0]
+                            newInterval = newInterval[ind]
+
                         newInterval = list(newInterval)
 
                         if newInterval:
